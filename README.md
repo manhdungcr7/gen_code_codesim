@@ -42,13 +42,22 @@ The original CodeSIM repository does **not** support LBPP. This repo adds:
 
 ## Setup
 
-**Requirements:** Python 3.11+
+**Requirements:** Python 3.11+, [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+
+Code evaluation runs inside a Docker sandbox — Docker must be installed and running before starting any experiment.
+
+**1. Pull the sandbox image (one-time):**
+
+```bash
+docker pull bigcodebench/bigcodebench-evaluate:latest
+```
+
+**2. Clone and install dependencies:**
 
 ```bash
 git clone https://github.com/manhdungcr7/gen_code_codesim
 cd gen_code_codesim
 
-# create and activate virtual environment
 py -3.12 -m venv venv
 venv\Scripts\activate        # Windows
 # source venv/bin/activate   # macOS/Linux
@@ -56,18 +65,14 @@ venv\Scripts\activate        # Windows
 pip install -r requirements.txt
 ```
 
-Copy `.env.example` to `.env` and set your API key:
-
-```bash
-cp .env.example .env   # then edit .env
-```
+**3. Configure API key** — copy `.env.example` to `.env` and fill in:
 
 ```
 API_TYPE="openai"
 OPENAI_API_KEY=sk-...
 ```
 
-Download the LBPP dataset (one-time):
+**4. Download the LBPP dataset (one-time):**
 
 ```bash
 python download_lbpp.py
