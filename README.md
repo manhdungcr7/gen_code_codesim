@@ -47,7 +47,7 @@ The original CodeSIM repository does **not** support LBPP. This repo adds:
 ```bash
 git clone https://github.com/manhdungcr7/gen_code_codesim
 cd gen_code_codesim
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 ```
 
 Copy `.env.example` to `.env` and set your API key:
