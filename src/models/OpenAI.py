@@ -49,10 +49,16 @@ class OpenAIV1Model(OpenAIModel):
             self.client = AzureOpenAI(
                 api_key=api_key,
                 api_version=api_version,
-                azure_endpoint=api_base
+                azure_endpoint=api_base,
+                timeout=120.0,
+                max_retries=2
             )
         else:
-            self.client = OpenAI(api_key=api_key)
+            self.client = OpenAI(
+                api_key=api_key,
+                timeout=120.0,
+                max_retries=2
+            )
 
         self.model_name = model_name
 

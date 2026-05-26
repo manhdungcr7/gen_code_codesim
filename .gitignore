@@ -12,10 +12,30 @@ test*
 
 results
 outputs
+output
 
 costing*.csv
 usage*.csv
 
 .venv
+venv
 
 temp*
+
+# datasets (download via download_lbpp.py / download_bcb.py)
+data/
+
+# experiment artefacts
+backup/
+scraped_data/
+task_func_data/
+
+# generated files
+*.jsonl
+*.json
+*.csv
+*.png
+*.jpg
+*.jpeg
+*.pdf
+word_counts.json

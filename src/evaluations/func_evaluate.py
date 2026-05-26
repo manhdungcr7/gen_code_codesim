@@ -1,9 +1,13 @@
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
+from docker_utils import run_in_sandbox
+
 from typing import *
 import contextlib
 import signal
 
 from .executor_utils import function_with_timeout
-
 
 def evaluate_io(
     sample_io: list[str],
@@ -16,21 +20,18 @@ def evaluate_io(
 
     test_log = ""
     passed = True
+    ai_code = ("from typing import *\n" if "from typing import *" not in completion else "") + completion
     for io in sample_io:
-        try:
-            code = ("from typing import *\n" if "from typing import *" not in completion else "") + \
-                completion + "\n" + io + "\n"
-            function_with_timeout(
-                exec,
-                (code, globals()),
-                timeout
-            )
+        test_cases_code = io + "\n"
+        is_passed, log = run_in_sandbox(ai_code=ai_code, test_cases=test_cases_code, timeout=timeout)
+        
+        if is_passed:
             test_log += f"Passed in test case: {io}\n"
-        except Exception as e:
+        else:
             if stop_early:
-                return False, f"Failed in test case: {io}\n"
+                return False, f"Failed in test case: {io}\nLog: {log}\n"
             passed = False
-            test_log += f"Failed in test case: {io}\n"
+            test_log += f"Failed in test case: {io}\nLog: {log}\n"
 
     return passed, test_log
 
@@ -42,17 +43,16 @@ def evaluate_io_et(
     prompt: str = "",
 ):
     io = "\n".join(sample_io)
-    try:
-        code = ("from typing import *\n" if "from typing import *" not in completion else "") + \
-            prompt + completion + "\n" + io + "\n"
-        function_with_timeout(
-            exec,
-            (code, globals()),
-            timeout
-        )
-        return True
-    except Exception as e:
-        return False
+    
+    ai_code = ("from typing import *\n" if "from typing import *" not in completion else "") + prompt + completion
+    test_cases_code = io + "\n"
+    
+    passed, log = run_in_sandbox(ai_code=ai_code, test_cases=test_cases_code, timeout=timeout)
+    
+    if passed:
+        return "passed"
+    else:
+        return f"failed: {log}"
 
 
 def evaluate_functional_correctness(
@@ -61,19 +61,17 @@ def evaluate_functional_correctness(
     completion: str,
     timeout: int = 5,
 ):
-    try:
-        code = ("from typing import *\n" if "from typing import *" not in completion else "") + \
-            completion + "\n" + test + \
-            "\n" + f"check({entry_point})"
+    ai_code = ("from typing import *\n" if "from typing import *" not in completion else "") + completion
+    test_cases_code = test
+    if entry_point:
+        test_cases_code += "\n" + f"check({entry_point})"
 
-        function_with_timeout(
-            exec,
-            (code, globals()),
-            timeout
-        )
+    passed, log = run_in_sandbox(ai_code=ai_code, test_cases=test_cases_code, timeout=timeout)
+    
+    if passed:
         return "passed"
-    except Exception as e:
-        return f"failed: {e}"
+    else:
+        return f"failed: {log}"
 
 
 class TimeoutException(Exception):

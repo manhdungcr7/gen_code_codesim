@@ -4,6 +4,8 @@ from datasets.APPSDataset import APPSDataset
 from datasets.XCodeDataset import XCodeDataset
 from datasets.HumanEvalDataset import HumanDataset
 from datasets.CodeContestDataset import CodeContestDataset
+from datasets.BigCodeBenchDataset import BigCodeBenchDataset
+from datasets.LBPPDataset import LBPPDataset
 
 
 class DatasetFactory:
@@ -24,5 +26,9 @@ class DatasetFactory:
             return HumanDataset
         elif dataset_name == "cc":
             return CodeContestDataset
+        elif dataset_name == "bigcodebench-hard":
+            return BigCodeBenchDataset
+        elif dataset_name == "lbpp":
+            return LBPPDataset
         else:
             raise Exception(f"Unknown dataset name {dataset_name}")

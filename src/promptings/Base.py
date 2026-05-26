@@ -97,6 +97,8 @@ class BaseStrategy(object):
                 # for _ in range(10):
                 #     try:
                 response = self.run_single_pass(data_row)
+                import time
+                time.sleep(20)
                 #     break
                 # except Exception as e:
                 #     time.sleep(5)

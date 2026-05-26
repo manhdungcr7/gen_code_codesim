@@ -15,3 +15,5 @@ google-generativeai
 accelerate
 groq
 matplotlib
+datasets
+anthropic

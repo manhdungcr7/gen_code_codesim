@@ -15,14 +15,12 @@ def parse_response(response: str) -> str:
         return response
 
     code_pattern = r'```((.|\n)*?)```'
-    if "```Python" in response:
-        code_pattern = r'```Python((.|\n)*?)```'
-    if "```Python3" in response:
-        code_pattern = r'```Python3((.|\n)*?)```'
-    if "```python" in response:
-        code_pattern = r'```python((.|\n)*?)```'
-    if "```python3" in response:
-        code_pattern = r'```python3((.|\n)*?)```'
+    # Use a unified pattern for all Python variants to avoid priority conflicts.
+    # Previously used separate `if` checks (not elif), so lowercase `python` would
+    # override `Python3`, causing parse to pick a simulation snippet instead of
+    # the actual Modified Code block when both variants appear in the same response.
+    if any(tag in response for tag in ["```Python3", "```python3", "```Python", "```python"]):
+        code_pattern = r'```[Pp]ython3?((.|\n)*?)```'
     if "```C" in response:
         code_pattern = r'```C((.|\n)*?)```'
     if "```c" in response:
@@ -67,6 +65,9 @@ def parse_response(response: str) -> str:
         code_pattern = r'```csharp((.|\n)*?)```'
 
     code_blocks = re.findall(code_pattern, response, re.DOTALL)
+
+    if not code_blocks:
+        return response
 
     if type(code_blocks[-1]) == tuple or type(code_blocks[-1]) == list:
         code_str = "\n".join(code_blocks[-1])

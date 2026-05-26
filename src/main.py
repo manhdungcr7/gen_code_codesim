@@ -1,5 +1,5 @@
 import dotenv
-dotenv.load_dotenv()
+dotenv.load_dotenv(override=True)
 
 import argparse
 import sys
@@ -36,6 +36,8 @@ parser.add_argument(
         "APPS",
         "xCodeEval",
         "CC",
+        "BigCodeBench-Hard",
+        "LBPP"
     ]
 )
 parser.add_argument(
@@ -49,6 +51,11 @@ parser.add_argument(
         "Analogical",
         "MapCoder",
         "CodeSIM",
+        "CodeNamDung",
+        "CodeNamDungV2",
+        "CodeNamDungV3",
+        "CodeNamDungV4",
+        "CodeNamDungV5",
         "CodeSIMWD",
         "CodeSIMWPV",
         "CodeSIMWPVD",

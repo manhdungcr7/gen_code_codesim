@@ -73,13 +73,44 @@ class MapCoder(BaseStrategy):
             response = response.replace('```', '')
 
         try:
+            # Thử parse bằng ElementTree như cũ
             root = ET.fromstring(response)
-        except:
+            return self.xml_to_dict(root)
+        except Exception:
             try:
                 root = ET.fromstring('<root>\n' + response + '\n</root>')
-            except:
-                root = ET.fromstring('<root>\n' + response)
-        return self.xml_to_dict(root)
+                return self.xml_to_dict(root)
+            except Exception:
+                # Nếu ElementTree thất bại do XML lỗi, dùng BeautifulSoup
+                try:
+                    from bs4 import BeautifulSoup
+                    # Khởi tạo BeautifulSoup với nội dung bọc trong <root>
+                    soup = BeautifulSoup(f"<root>{response}</root>", "html.parser")
+                    
+                    def soup_to_dict(element):
+                        res = {}
+                        for child in element.find_all(recursive=False):
+                            # Nếu child CÓ thẻ con bên trong thì đệ quy, nếu không thì lấy chữ
+                            child_data = soup_to_dict(child) if child.find_all(recursive=False) else child.get_text(strip=True)
+                            
+                            if child.name:
+                                tag_name = child.name
+                                if tag_name in res:
+                                    if isinstance(res[tag_name], list):
+                                        res[tag_name].append(child_data)
+                                    else:
+                                        res[tag_name] = [res[tag_name], child_data]
+                                else:
+                                    res[tag_name] = child_data
+                        return res
+                    
+                    root_node = soup.find('root')
+                    if root_node:
+                        return soup_to_dict(root_node)
+                    return soup_to_dict(soup)
+                except Exception as e:
+                    print(f"\n[Cảnh báo] Không thể parse XML từ response: {e}")
+                    return {}
 
     def parse_code(self, response: str) -> str:
         if "```" not in response:
@@ -242,8 +273,23 @@ Your response must follow the following xml format-
 
         response = self.parse_xml(response)
 
-        algorithm_prompt = f"## Relevant Algorithm to solve the next problem:\n{ response['algorithm']}"
-        sample_io_prompt = f"## Sample Test cases: \n{self.get_sample_io_str(data_row['sample_io'])}\n"
+        # Safeguard if the model fails to return the exact tags properly
+        algo = response.get('algorithm', '')
+        algorithm_prompt = f"## Relevant Algorithm to solve the next problem:\n{algo}" if algo else ""
+        
+        # Also safeguard 'problem' key to prevent similar KeyErrors in the next loop
+        problems_list = response.get('problem', [])
+        if not isinstance(problems_list, list):
+            # Sometimes LLM might generate a single problem dict rather than a list
+            problems_list = [problems_list] if problems_list else []
+        response['problem'] = problems_list
+        sample_io = data_row.get('sample_io', [])
+        sample_io_str = self.get_sample_io_str(sample_io)
+        if sample_io_str and sample_io_str != "[]" and sample_io_str != []:
+            sample_io_prompt = f"## Sample Test cases: \n{sample_io_str}\n" 
+        else:
+            sample_io_prompt = ""
+
         # if type(self.data) != MBPPDataset and type(self.data) != XCodeDataset else ""
 
         plannings = []

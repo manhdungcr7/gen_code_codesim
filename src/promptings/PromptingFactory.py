@@ -5,6 +5,11 @@ from promptings.SelfPlanning import SelfPlanningStrategy
 from promptings.MapCoder import MapCoder
 
 from promptings.CodeSIM import CodeSIM
+from promptings.CodeNamDung import CodeNamDung
+from promptings.CodeNamDungV2 import CodeNamDungV2
+from promptings.CodeNamDungV3 import CodeNamDungV3
+from promptings.CodeNamDungV4 import CodeNamDungV4
+from promptings.CodeNamDungV5 import CodeNamDungV5
 from promptings.variations.CodeSIMA import CodeSIMA
 from promptings.variations.CodeSIMC import CodeSIMC
 from promptings.variations.CodeSIMWD import CodeSIMWD
@@ -26,6 +31,16 @@ class PromptingFactory:
             return SelfPlanningStrategy
         elif prompting_name == "CodeSIM":
             return CodeSIM
+        elif prompting_name == "CodeNamDung":
+            return CodeNamDung
+        elif prompting_name == "CodeNamDungV2":
+            return CodeNamDungV2
+        elif prompting_name == "CodeNamDungV3":
+            return CodeNamDungV3
+        elif prompting_name == "CodeNamDungV4":
+            return CodeNamDungV4
+        elif prompting_name == "CodeNamDungV5":
+            return CodeNamDungV5
         elif prompting_name == "CodeSIMA":
             return CodeSIMA
         elif prompting_name == "CodeSIMC":

@@ -23,13 +23,15 @@ class GroqModel(BaseModel):
         self.model_name = model_name        
         self.temperature = kwargs.get("temperature", 0.0)
         self.top_p = kwargs.get("top_p", 0.95)
-        self.max_tokens = kwargs.get("max_tokens", 16000)
+        # Tăng max_tokens lên 8192 (giới hạn tối đa của llama-3.1-8b) để tránh cắt cụt code
+        self.max_tokens = kwargs.get("max_tokens", 8192)
         self.sleep_time = sleep_time
         self.api_key = api_key
 
-        self.client = Groq(api_key=self.api_key)
+        # max_retries=0 để client của Groq khỏi tự động sleep 5-10 phút khi gặp Header Retry-After
+        self.client = Groq(api_key=self.api_key, max_retries=0)
 
-    @retry(wait=wait_random_exponential(min=600, max=3600), stop=stop_after_attempt(5))
+    @retry(wait=wait_random_exponential(min=15, max=30), stop=stop_after_attempt(5))
     def prompt(
         self,
         processed_input: List[Dict],

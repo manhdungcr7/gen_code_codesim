@@ -66,22 +66,49 @@ class CodeSIM(DirectStrategy):
     def process_test_log(test_logs: str):
         passed_test_cases = []
         failed_test_cases = []
-        for test_log in test_logs.splitlines():
-            if test_log.startswith("Passed"):
-                passed_test_cases.append(test_log[test_log.index("assert"):])
-            if test_log.startswith("Failed"):
-                failed_test_cases.append(test_log[test_log.index("assert"):])
         
-        failed_test_cases_str = "\n".join(failed_test_cases)
+        # Split by " in test case: " to handle multi-line cases like LBPP
+        # test_logs typically looks like "Passed in test case: assert 1" or "Failed in test case: \n setup... \n assert"
+        import re
+        blocks = re.split(r'(Passed in test case: |Failed in test case: )', test_logs)
+        current_status = None
+        for block in blocks:
+            if block == 'Passed in test case: ':
+                current_status = 'passed'
+            elif block == 'Failed in test case: ':
+                current_status = 'failed'
+            elif current_status:
+                content = block.strip()
+                # Find where code setup or assert begins. If "assert" is not found, just use the whole content
+                idx = content.find("assert")
+                if idx == -1: idx = 0 # fallback if no assert
+                else: 
+                    # If it's multi-line setup before assert, keep the whole thing so LLM sees variable setups
+                    idx = 0 
+                
+                if current_status == 'passed':
+                    passed_test_cases.append(content)
+                else:
+                    failed_test_cases.append(content)
+                current_status = None
+
+        if len(failed_test_cases) == 0:
+            return ""
+            
+        failed_test_cases_str = "\n\n".join(failed_test_cases)
         return f"### Test Cases where the generated code failed to generate the expected output:\n{failed_test_cases_str}"
 
 
     def parse_test_cases(self, test_cases: str):
-        return [
-            test_case
-            for test_case in test_cases.splitlines()
-            if len(test_case) > 0 and test_case.startswith("assert")
-        ]
+        # Allow multi-line test cases separated by "assert" or empty lines
+        cases = []
+        import re
+        # If the generated test cases from LLM contain multiple lines, we try our best to split them.
+        blocks = re.split(r'\n(?=assert)', test_cases)
+        for block in blocks:
+            if len(block.strip()) > 0:
+                cases.append(block.strip() if block.strip().startswith("assert") else "assert " + block.strip())
+        return cases
 
 
     def check(
