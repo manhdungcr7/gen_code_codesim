@@ -65,11 +65,17 @@ venv\Scripts\activate        # Windows
 pip install -r requirements.txt
 ```
 
-**3. Configure API key** — copy `.env.example` to `.env` and fill in:
+**3. Configure API key** — copy `.env.example` to `.env` and replace `sk-...` with your real key:
+
+```bash
+cp .env.example .env
+```
+
+The default is OpenAI. Edit `.env` and set:
 
 ```
 API_TYPE="openai"
-OPENAI_API_KEY=sk-...
+OPENAI_API_KEY=sk-<your-key-here>
 ```
 
 **4. Download the LBPP dataset (one-time):**
